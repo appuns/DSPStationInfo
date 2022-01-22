@@ -1,0 +1,9 @@
+{
+    "name": "DSPStationInfo",
+    "version_number": "0.4.1",
+    "website_url": "",
+    "description": "Shows the contents of the station Without opening the window. This don't affect achievements or milestones. ウィンドウを開かずにステーションの内容を表示します。実績やマイルストーンには影響しません。",
+    "dependencies": [
+    "xiaoye97-BepInEx-5.4.17"
+    ]
+}
