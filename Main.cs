@@ -22,13 +22,13 @@ using Steamworks;
 using rail;
 using xiaoye97;
 
-[module: UnverifiableCode]
-[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+//[module: UnverifiableCode]
+//[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
 namespace DSPStationInfo
 {
 
-    [BepInPlugin("Appun.DSP.plugin.StationInfo", "DSPStationInfo", "0.4.1")]
+    [BepInPlugin("Appun.DSP.plugin.StationInfo", "DSPStationInfo", "0.4.2")]
     [BepInProcess("DSPGAME.exe")]
 
 
@@ -36,14 +36,18 @@ namespace DSPStationInfo
     public class Main : BaseUnityPlugin
     {
         public static ConfigEntry<bool> ShowStationInfo;
-        //public static ConfigEntry<int> maxCount;
-        public static int maxCount = 10;
+        public static ConfigEntry<int> maxInfo;
 
+        public struct Station
+        {
+            public Vector2 UIpos;
+            public int id;
+            public float dist;
+            public int maxStorage;
+            public float num;
+        }
 
-
-        //public static bool showSignButton = true;
-
-        public static int count;
+        public static List<Station> stationList = new List<Station>();
 
 
         public void Start()
@@ -53,9 +57,12 @@ namespace DSPStationInfo
 
             //configの設定
             ShowStationInfo = Config.Bind("General", "ShowStationInfo", false, "Show Station Information");
-            //maxCount = Config.Bind("General", "maxCount", 200, "Inventory Column Count");
+            maxInfo = Config.Bind("General", "maxInfo", 20, "Maximum number of station information to be displayed");
 
+            //UI作成
             UI.create();
+
+
         }
 
 
@@ -67,34 +74,19 @@ namespace DSPStationInfo
 
             if (!ShowStationInfo.Value)
             {
-                for (int i = 0; i < maxCount; i++)
+                for (int i = 0; i < maxInfo.Value; i++)
                 {
-                    UI.tip[i].SetActive(false);
+                    UI.tipBox[i].SetActive(false);
                 }
             }
         }
 
 
-        [HarmonyPatch(typeof(UIGameMenu), "OnButton1Click")]
-        public static class UIGameMenu_OnButton1Click_PostPatch
-        {
-            [HarmonyPostfix]
-            public static void Postfix()
-            {
-                UI.signButton.transform.Find("icon").GetComponent<Image>().sprite = LDB.techs.Select(1604).iconSprite;
-                if (ShowStationInfo.Value)
-                {
-                    UI.signButton.GetComponent<UIButton>().highlighted = true;
-                }
-                else
-                {
-                    UI.signButton.GetComponent<UIButton>().highlighted = false;
-                }
-            }
-        }
-
+        //メインの処理
         public void Update()
         {
+
+
             UIStorageWindow storageWindow = UIRoot.instance.uiGame.storageWindow;
 
 
@@ -102,11 +94,7 @@ namespace DSPStationInfo
             {
                 return;
             }
-            if (UIGame.viewMode == EViewMode.Normal || UIGame.viewMode == EViewMode.Globe || UIGame.viewMode == EViewMode.Build)
-            {
-                UI.stationTip.SetActive(true);
-            }
-            else
+            if (UIGame.viewMode != EViewMode.Normal && UIGame.viewMode != EViewMode.Globe && UIGame.viewMode != EViewMode.Build)
             {
                 UI.stationTip.SetActive(false);
                 return;
@@ -124,174 +112,188 @@ namespace DSPStationInfo
             {
                 return;
             }
-            var count = 0;
+            UI.stationTip.SetActive(true);
 
             Vector3 localPosition = GameCamera.main.transform.localPosition;
             Vector3 forward = GameCamera.main.transform.forward;
+            StationComponent[] stationPool = localPlanet.factory.transport.stationPool;
 
-            float realRadius = localPlanet.realRadius;    //高さ
+            float realRadius = localPlanet.realRadius;    //惑星の半径
 
-            LogManager.Logger.LogInfo("------------------------------------------------------------------start");
+            //LogManager.Logger.LogInfo("------------------------------------------------------------------start");
 
 
-            if (localPlanet.factory.transport.stationPool.Length > 0)
+            if (stationPool.Length > 0)
             {
-                LogManager.Logger.LogInfo("------------------------------localPlanet.factory.transport.stationPool.Length : " + localPlanet.factory.transport.stationPool.Length);
-                foreach (StationComponent station in localPlanet.factory.transport.stationPool)
+                //LogManager.Logger.LogInfo("------------------------------localPlanet.factory.transport.stationPool.Length : " + stationPool.Length);
+                for (int i = 0; i < stationPool.Length; i++)
                 {
-                    //LogManager.Logger.LogInfo("count : " + count);
-                    if (count == maxCount)
-                    {
-                        maxCount++;
-                        GameObject tiptmp = Instantiate(UI.tipPrefab, UI.stationTip.transform) as GameObject;
-
-                        //UI.tip.Concat(new GameObject[] { UI.tiptmp }).ToArray();
-                        Array.Resize<GameObject>(ref UI.tip, maxCount);
-                        //LogManager.Logger.LogInfo("Array.Resize : " + UI.tip.Length);
-                        UI.tip[maxCount - 1] = Instantiate(UI.tipPrefab, UI.stationTip.transform) as GameObject;
-
-                    }
-
-
-
+                    StationComponent station = stationPool[i];
                     if (station != null)
                     {
-                        if (station.storage != null)
+                        //LogManager.Logger.LogInfo("------------------------------------------------------------station.id : " + stationPool[i].id);
+                        Vector3 vector;
+                        int maxStorage;
+                        //ステーションの種類によって高さ調節
+                        if (station.isVeinCollector)
                         {
-                            Vector3 vector;
-                            int maxStorage;
-                            if (station.isVeinCollector)
-                            {
-                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 10f);
-                                maxStorage = 1;
-                            }
-                            else if (station.isCollector)
-                            {
-                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 35f);
-                                maxStorage = 2;
-                            }
-                            else if (station.isStellar)
-                            {
-                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 20f);
-                                maxStorage = 5;
-                            }
-                            else
-                            {
-                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 15f);
-                                maxStorage = 3;
-                            }
-
-                            Vector3 vector2 = vector - localPosition;
-                            float magnitude = vector2.magnitude;
-                            float num = Vector3.Dot(forward, vector2);
-
-                            if (magnitude < 1f || num < 1f)
-                            {
-                                UI.tip[count].SetActive(false);
-                            }
-                            else
-                            {
-                                Vector2 vector3;
-                                bool flag = UIRoot.ScreenPointIntoRect(GameCamera.main.WorldToScreenPoint(vector), UI.stationTip.GetComponent<RectTransform>(), out vector3);
-                                if (Mathf.Abs(vector3.x) > 8000f)
-                                {
-                                    flag = false;
-                                }
-                                if (Mathf.Abs(vector3.y) > 8000f)
-                                {
-                                    flag = false;
-                                }
-                                RCHCPU rchcpu;
-                                if (Phys.RayCastSphere(localPosition, vector2 / magnitude, magnitude, Vector3.zero, realRadius, out rchcpu))
-                                {
-                                    flag = false;
-                                }
-                                if (flag)
-                                {
-
-
-                                    vector3.x = Mathf.Round(vector3.x);
-                                    vector3.y = Mathf.Round(vector3.y);
-
-                                    UI.tip[count].GetComponent<RectTransform>().anchoredPosition = vector3;
-
-                                    LogManager.Logger.LogInfo("station : " + station.id);
-                                    LogManager.Logger.LogInfo("count : " + count);
-
-
-
-                                    for (int j = 0; j < maxStorage; j++)
-                                    {
-                                        if (station.storage[j].itemId != 0)
-                                        {
-                                            //枠のサイズ調整
-                                            UI.tip[count].GetComponent<RectTransform>().sizeDelta = new Vector2(100, maxStorage * 30 + 10 );
-
-                                            //アイコンの表示
-                                            UI.tip[count].transform.Find("icon" + j).GetComponent<Image>().sprite = LDB.items.Select(station.storage[j].itemId).iconSprite;
-                                            UI.tip[count].transform.Find("icon" + j).gameObject.SetActive(true);
-
-                                            //個数の表示
-                                            UI.tip[count].transform.Find("countText" + j).GetComponent<Text>().text = station.storage[j].count.ToString("#,##0");
-
-                                            //色の指定示
-                                            if ((station.storage[j].count * 10) < station.storage[j].max)
-                                            {
-                                                UI.tip[count].transform.Find("countText" + j).GetComponent<Text>().color = new Color(1, 0.45f, 0.2f, 1);
-                                            }
-                                            else
-                                            {
-                                                UI.tip[count].transform.Find("countText" + j).GetComponent<Text>().color = Color.white;
-                                            }
-                                            UI.tip[count].transform.Find("countText" + j).gameObject.SetActive(true);
-                                            UI.tip[count].SetActive(true);
-                                        }
-                                        else
-                                        {
-                                            UI.tip[count].transform.Find("icon" + j).gameObject.SetActive(false);
-                                            UI.tip[count].transform.Find("countText" + j).GetComponent<Text>().text = "-------------";
-                                            UI.tip[count].transform.Find("countText" + j).GetComponent<Text>().color = Color.white;
-                                            UI.tip[count].transform.Find("countText" + j).gameObject.SetActive(true);
-                                        }
-                                        //サイズの調整
-                                        //if (UIGame.viewMode == EViewMode.Normal)
-                                        //{
-                                        if (magnitude < 50)
-                                        {
-                                            UI.tip[count].transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
-                                        }
-                                        else if (magnitude < 250)
-                                        {
-                                            float num2 = (float)(1.75 - magnitude * 0.005);
-                                            UI.tip[count].transform.localScale = new Vector3(1, 1, 1) * num2;
-                                        }
-                                        else
-                                        {
-                                            UI.tip[count].transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-                                        }
-                                        //} else 
-                                        //{
-                                        //    UI.tip[count].transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-                                        //}
-
-                                    }
-                                    //LogManager.Logger.LogInfo("count++ : " + count);
-
-                                    for (int j = maxStorage; j < 5; j++)
-                                    {
-                                        UI.tip[count].transform.Find("icon" + j).gameObject.SetActive(false);
-                                        UI.tip[count].transform.Find("countText" + j).gameObject.SetActive(false);
-                                    }
-                                    count++;
-                                }
-                            }
+                            vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 10f);
+                            maxStorage = 1;
                         }
+                        else if (station.isCollector)
+                        {
+                            vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 35f);
+                            maxStorage = 2;
+                        }
+                        else if (station.isStellar)
+                        {
+                            vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 20f);
+                            maxStorage = 5;
+                        }
+                        else
+                        {
+                            vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 15f);
+                            maxStorage = 3;
+                        }
+                        //LogManager.Logger.LogInfo("------------------------------------------------------------maxStorage : " + maxStorage);
+
+                        Vector3 vector2 = vector - localPosition;
+                        float magnitude = vector2.magnitude;
+                        float num = Vector3.Dot(forward, vector2);
+
+                        //if (magnitude < 1f || num < 0.5f) //見えてるか？
+                        //{
+                        //    break;
+                        //}
+                        //else
+                        //{
+                            Vector2 vector3;
+                            bool flag = UIRoot.ScreenPointIntoRect(GameCamera.main.WorldToScreenPoint(vector), UI.stationTip.GetComponent<RectTransform>(), out vector3);
+                            if (Mathf.Abs(vector3.x) > 8000f)
+                            {
+                                flag = false;
+                            }
+                            if (Mathf.Abs(vector3.y) > 8000f)
+                            {
+                                flag = false;
+                            }
+                            RCHCPU rchcpu;
+                            if (Phys.RayCastSphere(localPosition, vector2 / magnitude, magnitude, Vector3.zero, realRadius, out rchcpu))
+                            {
+                                flag = false;
+                            }
+                            if (flag) //見えたら？
+                            {
+                                Station st = new Station();
+                                st.UIpos.x = Mathf.Round(vector3.x);
+                                st.UIpos.y = Mathf.Round(vector3.y);
+                                st.id = station.id;
+                                st.dist = magnitude;
+                                st.maxStorage = maxStorage;
+                                st.num = num;
+                                stationList.Add(st);
+                                //LogManager.Logger.LogInfo("------------------------------------------------------------------stationList.Add");
+                            }
+                        //}
                     }
                 }
-            }
-            for (int i = count; i < Main.maxCount; i++)
-            {
-                UI.tip[i].SetActive(false);
+                //LogManager.Logger.LogInfo("------------------------------------------------------------------stationList created " + stationList.Count);
+
+                //距離順に並べる
+                stationList.Sort((a, b) => a.dist.CompareTo(b.dist));
+                //LogManager.Logger.LogInfo("------------------------------------------------------------------stationList created " + stationList.Count);
+                //11個目以降を削除
+                if (stationList.Count > maxInfo.Value)
+                {
+                    stationList.RemoveRange(maxInfo.Value, stationList.Count - maxInfo.Value);
+                }
+                //LogManager.Logger.LogInfo("------------------------------------------------------------------sorted and deleted " + stationList.Count);
+
+                for (int i = 0; i < stationList.Count; i++)
+                {
+                    int k = stationList.Count - i - 1;
+
+                    StationComponent staionComp = stationPool[stationList[k].id];
+
+
+                    if (staionComp.storage != null)
+                    {
+
+                        //LogManager.Logger.LogInfo($"---{i}----{stationList[k].id}--- {stationList[k].UIpos.x} , {stationList[k].UIpos.y} --{stationList[k].dist}---- ");
+                        UI.tipBox[i].GetComponent<RectTransform>().anchoredPosition = stationList[k].UIpos;
+
+                        //位置調整以外の処理を間引いて処理軽減
+                        //if (Time.frameCount % 10 == 0)
+                        //{
+                        //枠のサイズ調整
+                        UI.tipBox[i].GetComponent<RectTransform>().sizeDelta = new Vector2(100, stationList[k].maxStorage * 30 + 10);
+
+                        for (int j = 0; j < stationList[k].maxStorage; j++)
+                        {
+                            //maxStorageより大きいスロット非アクティブ化
+                            if (j < stationList[k].maxStorage)
+                            {
+                                //maxStorageより大きい場合はデータ書き込み
+                                //アイテムが設定してある場合
+                                if (staionComp.storage[j].itemId != 0)
+                                {
+                                    //アイコンの表示
+                                    UI.tipIcon[i, j].sprite = LDB.items.Select(staionComp.storage[j].itemId).iconSprite;
+                                    UI.tipIcon[i, j].gameObject.SetActive(true);
+
+                                    //テキスト個数の表示
+                                    UI.tipCounter[i, j].text = staionComp.storage[j].count.ToString("#,##0");
+                                    //UI.tipCounter[i, j].text = stationList[k].num.ToString("F");
+                                    //テキスト色の指定示
+                                    if ((staionComp.storage[j].count * 10) < staionComp.storage[j].max)
+                                    {
+                                        UI.tipCounter[i, j].color = new Color(1, 0.45f, 0.2f, 1);
+                                    }
+                                    else
+                                    {
+                                        UI.tipCounter[i, j].color = Color.white;
+                                    }
+                                    UI.tipCounter[i, j].gameObject.SetActive(true);
+                                }
+                                else
+                                {
+                                    //アイテムが設定してない場合
+                                    UI.tipIcon[i, j].gameObject.SetActive(false);
+                                    UI.tipCounter[i, j].text = "-------------";
+                                    UI.tipCounter[i, j].color = Color.white;
+                                    UI.tipCounter[i, j].gameObject.SetActive(true);
+                                }
+                            }
+                            else
+                            {
+                                UI.tipIcon[i, j].gameObject.SetActive(false);
+                                UI.tipCounter[i, j].gameObject.SetActive(false);
+                            }
+                            UI.tipBox[i].SetActive(true);
+
+                        }
+                        ////距離によって大きさの調整
+                        if (stationList[k].dist < 50)
+                        {
+                            UI.tipBox[i].transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
+                        }
+                        else if (stationList[k].dist < 250)
+                        {
+                            float num2 = (float)(1.75 - stationList[k].dist * 0.005);
+                            UI.tipBox[i].transform.localScale = new Vector3(1, 1, 1) * num2;
+                        }
+                        else
+                        {
+                            UI.tipBox[i].transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+                        }
+                        //}
+                    }
+                }
+                for (int i = stationList.Count; i < maxInfo.Value; i++)
+                {
+                    UI.tipBox[i].SetActive(false);
+                }
+                stationList.Clear();
             }
         }
     }

@@ -21,6 +21,8 @@ If you have any problems or suggestions, please contact DISCORD MSP Modding serv
 不具合、改善案などありましたら、DISCORD「DysonSphereProgram_Jp」サーバー**Appun#8284**までお願いします。<br>
 
 ## Change Log　更新履歴
+### 0.4.2
+- reduced the load significantly. 負荷がかなり減りました。
 ### 0.4.1
 - Supported the game version 0.9.24.11209. ゲームバージョン0.9.24.11209に対応しました。
 ### 0.4.0

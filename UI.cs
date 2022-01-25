@@ -27,13 +27,17 @@ namespace DSPStationInfo
     class UI : MonoBehaviour
     {
 
-        public static GameObject[] tip = new GameObject[Main.maxCount];
+        public static GameObject[] tipBox = new GameObject[Main.maxInfo.Value];
+        public static Text[,] tipCounter = new Text[Main.maxInfo.Value, 5];
+        public static Image[,] tipIcon = new Image[Main.maxInfo.Value, 5];
+
         public static GameObject stationTip;
         public static GameObject tipPrefab;
         public static GameObject signButton;
 
         public static void create()
         {
+            //LogManager.Logger.LogInfo("------------------------------------------------------------------start create");
 
             stationTip = Instantiate(GameObject.Find("UI Root/Overlay Canvas/In Game/Scene UIs/Vein Marks"), GameObject.Find("UI Root/Overlay Canvas/In Game/Scene UIs").transform) as GameObject;
             stationTip.name = "stationTip";
@@ -65,12 +69,10 @@ namespace DSPStationInfo
             Destroy(tipPrefab.GetComponent<UIVeinDetailNode>());
             tipPrefab.SetActive(false);
 
-            GameObject icon = new GameObject();
-            GameObject text = new GameObject();
 
             for (int i = 0; i < 5; i++)
             {
-                text = Instantiate(tipPrefab.transform.Find("info-text").gameObject, new Vector3(0, 0, 0), Quaternion.identity, tipPrefab.transform);
+                GameObject text = Instantiate(tipPrefab.transform.Find("info-text").gameObject, new Vector3(0, 0, 0), Quaternion.identity, tipPrefab.transform);
                 text.name = "countText" + i;
 
                 text.GetComponent<Text>().fontSize = 20;
@@ -84,22 +86,32 @@ namespace DSPStationInfo
                 text.GetComponent<RectTransform>().anchoredPosition3D = new Vector3(0, -5 - 30 * i, 0);
                 Destroy(text.GetComponent<Shadow>());
 
-
-                icon = Instantiate(tipPrefab.transform.Find("icon").gameObject, new Vector3(0, 0, 0), Quaternion.identity, tipPrefab.transform);
+                GameObject icon = Instantiate(tipPrefab.transform.Find("icon").gameObject, new Vector3(0, 0, 0), Quaternion.identity, tipPrefab.transform);
                 icon.name = "icon" + i;
                 icon.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
                 icon.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
                 icon.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
                 icon.GetComponent<RectTransform>().anchoredPosition3D = new Vector3(5, -5 - 30 * i, 0);
+
+
             }
             tipPrefab.transform.Find("info-text").gameObject.SetActive(false);
             tipPrefab.transform.Find("icon").gameObject.SetActive(false);
 
             //tipの作成
-            for (int j = 0; j < Main.maxCount; j++)
+            for (int i = 0; i < Main.maxInfo.Value; i++)
             {
-                tip[j] = Instantiate(tipPrefab, stationTip.transform) as GameObject;
+                tipBox[i] = Instantiate(tipPrefab, stationTip.transform) as GameObject;
+                for (int j = 0; j < 5; j++)
+
+                {
+                    tipCounter[i, j] = tipBox[i].transform.Find("countText" + j).GetComponent<Text>();
+                    tipIcon[i, j] = tipBox[i].transform.Find("icon" + j).GetComponent<Image>();
+                }
+
             }
+            //LogManager.Logger.LogInfo("------------------------------------------------------------------created");
+
         }
     }
 }
