@@ -28,7 +28,7 @@ using xiaoye97;
 namespace DSPStationInfo
 {
 
-    [BepInPlugin("Appun.DSP.plugin.StationInfo", "DSPStationInfo", "0.4.2")]
+    [BepInPlugin("Appun.DSP.plugin.StationInfo", "DSPStationInfo", "0.4.3")]
     [BepInProcess("DSPGAME.exe")]
 
 
@@ -228,7 +228,7 @@ namespace DSPStationInfo
                         //枠のサイズ調整
                         UI.tipBox[i].GetComponent<RectTransform>().sizeDelta = new Vector2(100, stationList[k].maxStorage * 30 + 10);
 
-                        for (int j = 0; j < stationList[k].maxStorage; j++)
+                        for (int j = 0; j < 5; j++)
                         {
                             //maxStorageより大きいスロット非アクティブ化
                             if (j < stationList[k].maxStorage)

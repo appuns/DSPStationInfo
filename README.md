@@ -21,8 +21,10 @@ If you have any problems or suggestions, please contact DISCORD MSP Modding serv
 不具合、改善案などありましたら、DISCORD「DysonSphereProgram_Jp」サーバー**Appun#8284**までお願いします。<br>
 
 ## Change Log　更新履歴
+### 0.4.3
+- Fixed a bug that the information of stations with slots smaller than 5 was incorrect. スロットが5より小さいステーションの情報が正しくなかったバグを解消しました。
 ### 0.4.2
-- reduced the load significantly. 負荷がかなり減りました。
+- Reduced the load significantly. 負荷がかなり減りました。
 ### 0.4.1
 - Supported the game version 0.9.24.11209. ゲームバージョン0.9.24.11209に対応しました。
 ### 0.4.0
@@ -32,4 +34,4 @@ If you have any problems or suggestions, please contact DISCORD MSP Modding serv
 - The size changes according to the distance. 距離に応じてサイズが変わるようになりました。
 - Displayed in planet view.　惑星ビューでも見ることができるようになりました。
 ### 0.2.0
--  released リリースしました。<br>
+-  released リリースしました。
