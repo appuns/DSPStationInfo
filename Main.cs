@@ -25,18 +25,28 @@ using xiaoye97;
 //[module: UnverifiableCode]
 //[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
+
 namespace DSPStationInfo
 {
-
-    [BepInPlugin("Appun.DSP.plugin.StationInfo", "DSPStationInfo", "0.4.3")]
+    [BepInDependency("org.kremnev8.plugin.GigaStationsUpdated", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInPlugin("Appun.DSP.plugin.StationInfo", "DSPStationInfo", "0.4.4")]
     [BepInProcess("DSPGAME.exe")]
 
 
 
     public class Main : BaseUnityPlugin
     {
+
         public static ConfigEntry<bool> ShowStationInfo;
         public static ConfigEntry<int> maxInfo;
+
+        public static bool gigaStationEnable = false;
+        public static int gigaPLSMaxStorages;
+        public static int gigaILSMaxStorages;
+        public static int maxKinds = 5;
+
+        //public const string GigaStationID = "org.kremnev8.plugin.GigaStationsUpdated";
+
 
         public struct Station
         {
@@ -59,11 +69,13 @@ namespace DSPStationInfo
             ShowStationInfo = Config.Bind("General", "ShowStationInfo", false, "Show Station Information");
             maxInfo = Config.Bind("General", "maxInfo", 20, "Maximum number of station information to be displayed");
 
-            //UI作成
-            UI.create();
 
 
         }
+
+
+
+
 
 
         //signButtonボタンイベント
@@ -90,7 +102,7 @@ namespace DSPStationInfo
             UIStorageWindow storageWindow = UIRoot.instance.uiGame.storageWindow;
 
 
-            if (!ShowStationInfo.Value)
+            if (!ShowStationInfo.Value)//  || Patches.isDismantling)
             {
                 return;
             }
@@ -129,13 +141,14 @@ namespace DSPStationInfo
                 for (int i = 0; i < stationPool.Length; i++)
                 {
                     StationComponent station = stationPool[i];
-                    if (station != null)
+                    if (station != null && stationPool[i].id != 0)
                     {
                         //LogManager.Logger.LogInfo("------------------------------------------------------------station.id : " + stationPool[i].id);
                         Vector3 vector;
                         int maxStorage;
+
                         //ステーションの種類によって高さ調節
-                        if (station.isVeinCollector)
+                        if (station.isVeinCollector)// station.storage.Length 
                         {
                             vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 10f);
                             maxStorage = 1;
@@ -147,15 +160,34 @@ namespace DSPStationInfo
                         }
                         else if (station.isStellar)
                         {
-                            vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 20f);
-                            maxStorage = 5;
+                            if (station.storage.Length > 5)
+                            {
+                                maxStorage = gigaILSMaxStorages;
+                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius +  13f + maxStorage * 1.4f);
+                            }
+                            else
+                            {
+                                maxStorage = 5;
+                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 20f);
+                            }
                         }
                         else
                         {
-                            vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 15f);
-                            maxStorage = 3;
+                            if (station.storage.Length > 5)
+                            {
+                                maxStorage = gigaPLSMaxStorages;
+                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 13f + maxStorage * 1.4f);
+                            }
+                            else
+                            {
+                                maxStorage = 3;
+                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 15f);
+                            }
                         }
                         //LogManager.Logger.LogInfo("------------------------------------------------------------maxStorage : " + maxStorage);
+                        //float height = 7.5f + station.storage.Length * 2.5f;
+                        //Vector3 vectorHeight = new Vector3(height, height, height);
+                        //vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + height);
 
                         Vector3 vector2 = vector - localPosition;
                         float magnitude = vector2.magnitude;
@@ -215,7 +247,7 @@ namespace DSPStationInfo
 
                     StationComponent staionComp = stationPool[stationList[k].id];
 
-
+                    //LogManager.Logger.LogInfo("------------------------------------------------------------------staionComp " + staionComp);
                     if (staionComp.storage != null)
                     {
 
@@ -228,7 +260,17 @@ namespace DSPStationInfo
                         //枠のサイズ調整
                         UI.tipBox[i].GetComponent<RectTransform>().sizeDelta = new Vector2(100, stationList[k].maxStorage * 30 + 10);
 
-                        for (int j = 0; j < 5; j++)
+                        ////足りなければtipを作成
+                        //if (maxStorages > stationList[k].maxStorage)
+                        //{
+                        //    maxStorages = stationList[k].maxStorage;
+                        //   for (int j = stationList[k].maxStorage; j < maxStorages; j++)
+                        //    {
+                        //        UI.InstantiateTip(j);
+                        //    }
+
+                        //}
+                        for (int j = 0; j < maxKinds; j++)
                         {
                             //maxStorageより大きいスロット非アクティブ化
                             if (j < stationList[k].maxStorage)

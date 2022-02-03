@@ -52,6 +52,10 @@
     <Reference Include="BepInEx.Preloader">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\core\BepInEx.Preloader.dll</HintPath>
     </Reference>
+    <Reference Include="GigaStations, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\DSPGAME_Data\Managed\publicized_assemblies\GigaStations.dll</HintPath>
+    </Reference>
     <Reference Include="HarmonyXInterop">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\core\HarmonyXInterop.dll</HintPath>
     </Reference>
@@ -338,6 +342,10 @@
     <Compile Include="Patches.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="manifest.json" />
+    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
