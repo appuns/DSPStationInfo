@@ -22,13 +22,13 @@ using Steamworks;
 using rail;
 using xiaoye97;
 
-//[module: UnverifiableCode]
-//[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+[module: UnverifiableCode]
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
 
 namespace DSPStationInfo
 {
-    [BepInDependency("org.kremnev8.plugin.GigaStationsUpdated", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("org.kremnev8.plugin.GigaStationsUpdated", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin("Appun.DSP.plugin.StationInfo", "DSPStationInfo", "0.4.4")]
     [BepInProcess("DSPGAME.exe")]
 
@@ -39,11 +39,12 @@ namespace DSPStationInfo
 
         public static ConfigEntry<bool> ShowStationInfo;
         public static ConfigEntry<int> maxInfo;
+        public static ConfigEntry<bool> HideEmptySlot;
 
         public static bool gigaStationEnable = false;
-        public static int gigaPLSMaxStorages;
-        public static int gigaILSMaxStorages;
-        public static int maxKinds = 5;
+        //public static int gigaPLSMaxStorages;
+        //public static int gigaILSMaxStorages;
+        public static int maxKinds = 12;
 
         //public const string GigaStationID = "org.kremnev8.plugin.GigaStationsUpdated";
 
@@ -66,10 +67,11 @@ namespace DSPStationInfo
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
 
             //configの設定
-            ShowStationInfo = Config.Bind("General", "ShowStationInfo", false, "Show Station Information");
+            ShowStationInfo = Config.Bind("General", "ShowStationInfo", true, "Show Station Information");
             maxInfo = Config.Bind("General", "maxInfo", 20, "Maximum number of station information to be displayed");
+            HideEmptySlot = Config.Bind("General", "HideEmptySlot", false, "Hide Empty Item Slot");
 
-
+            UI.create();
 
         }
 
@@ -158,36 +160,27 @@ namespace DSPStationInfo
                             vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 35f);
                             maxStorage = 2;
                         }
-                        else if (station.isStellar)
-                        {
-                            if (station.storage.Length > 5)
-                            {
-                                maxStorage = gigaILSMaxStorages;
-                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius +  13f + maxStorage * 1.4f);
-                            }
-                            else
-                            {
-                                maxStorage = 5;
-                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 20f);
-                            }
-                        }
                         else
                         {
-                            if (station.storage.Length > 5)
+                            if(HideEmptySlot.Value)
                             {
-                                maxStorage = gigaPLSMaxStorages;
-                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 13f + maxStorage * 1.4f);
+                                int slotCount = 0;
+                                for (int j = 0; j < station.storage.Length; j++)
+                                {
+                                    if (station.storage[j].itemId != 0)
+                                    {
+                                        slotCount++;
+                                    }
+                                }
+                                maxStorage = slotCount;
                             }
                             else
                             {
-                                maxStorage = 3;
-                                vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 15f);
+                                maxStorage = station.storage.Length;
                             }
+                            vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + 14f + maxStorage * 1.4f);
                         }
                         //LogManager.Logger.LogInfo("------------------------------------------------------------maxStorage : " + maxStorage);
-                        //float height = 7.5f + station.storage.Length * 2.5f;
-                        //Vector3 vectorHeight = new Vector3(height, height, height);
-                        //vector = localPlanet.factory.entityPool[station.entityId].pos.normalized * (realRadius + height);
 
                         Vector3 vector2 = vector - localPosition;
                         float magnitude = vector2.magnitude;
@@ -199,47 +192,44 @@ namespace DSPStationInfo
                         //}
                         //else
                         //{
-                            Vector2 vector3;
-                            bool flag = UIRoot.ScreenPointIntoRect(GameCamera.main.WorldToScreenPoint(vector), UI.stationTip.GetComponent<RectTransform>(), out vector3);
-                            if (Mathf.Abs(vector3.x) > 8000f)
-                            {
-                                flag = false;
-                            }
-                            if (Mathf.Abs(vector3.y) > 8000f)
-                            {
-                                flag = false;
-                            }
-                            RCHCPU rchcpu;
-                            if (Phys.RayCastSphere(localPosition, vector2 / magnitude, magnitude, Vector3.zero, realRadius, out rchcpu))
-                            {
-                                flag = false;
-                            }
-                            if (flag) //見えたら？
-                            {
-                                Station st = new Station();
-                                st.UIpos.x = Mathf.Round(vector3.x);
-                                st.UIpos.y = Mathf.Round(vector3.y);
-                                st.id = station.id;
-                                st.dist = magnitude;
-                                st.maxStorage = maxStorage;
-                                st.num = num;
-                                stationList.Add(st);
-                                //LogManager.Logger.LogInfo("------------------------------------------------------------------stationList.Add");
-                            }
+                        Vector2 vector3;
+                        bool flag = UIRoot.ScreenPointIntoRect(GameCamera.main.WorldToScreenPoint(vector), UI.stationTip.GetComponent<RectTransform>(), out vector3);
+                        if (Mathf.Abs(vector3.x) > 8000f)
+                        {
+                            flag = false;
+                        }
+                        if (Mathf.Abs(vector3.y) > 8000f)
+                        {
+                            flag = false;
+                        }
+                        RCHCPU rchcpu;
+                        if (Phys.RayCastSphere(localPosition, vector2 / magnitude, magnitude, Vector3.zero, realRadius, out rchcpu))
+                        {
+                            flag = false;
+                        }
+                        if (flag) //見えたら？
+                        {
+                            Station st = new Station();
+                            st.UIpos.x = Mathf.Round(vector3.x);
+                            st.UIpos.y = Mathf.Round(vector3.y);
+                            st.id = station.id;
+                            st.dist = magnitude;
+                            st.maxStorage = maxStorage;
+                            st.num = num;
+                            stationList.Add(st);
+                            //LogManager.Logger.LogInfo("------------------------------------------------------------------stationList.Add");
+                        }
                         //}
                     }
                 }
-                //LogManager.Logger.LogInfo("------------------------------------------------------------------stationList created " + stationList.Count);
 
                 //距離順に並べる
                 stationList.Sort((a, b) => a.dist.CompareTo(b.dist));
-                //LogManager.Logger.LogInfo("------------------------------------------------------------------stationList created " + stationList.Count);
                 //11個目以降を削除
                 if (stationList.Count > maxInfo.Value)
                 {
                     stationList.RemoveRange(maxInfo.Value, stationList.Count - maxInfo.Value);
                 }
-                //LogManager.Logger.LogInfo("------------------------------------------------------------------sorted and deleted " + stationList.Count);
 
                 for (int i = 0; i < stationList.Count; i++)
                 {
@@ -247,7 +237,6 @@ namespace DSPStationInfo
 
                     StationComponent staionComp = stationPool[stationList[k].id];
 
-                    //LogManager.Logger.LogInfo("------------------------------------------------------------------staionComp " + staionComp);
                     if (staionComp.storage != null)
                     {
 
@@ -257,63 +246,58 @@ namespace DSPStationInfo
                         //位置調整以外の処理を間引いて処理軽減
                         //if (Time.frameCount % 10 == 0)
                         //{
-                        //枠のサイズ調整
-                        UI.tipBox[i].GetComponent<RectTransform>().sizeDelta = new Vector2(100, stationList[k].maxStorage * 30 + 10);
 
-                        ////足りなければtipを作成
-                        //if (maxStorages > stationList[k].maxStorage)
-                        //{
-                        //    maxStorages = stationList[k].maxStorage;
-                        //   for (int j = stationList[k].maxStorage; j < maxStorages; j++)
-                        //    {
-                        //        UI.InstantiateTip(j);
-                        //    }
 
                         //}
-                        for (int j = 0; j < maxKinds; j++)
+                        int slotNum = 0;
+                        for (int j = 0; j < staionComp.storage.Length; j++)
                         {
-                            //maxStorageより大きいスロット非アクティブ化
-                            if (j < stationList[k].maxStorage)
+                            if (staionComp.storage[j].itemId != 0)
                             {
-                                //maxStorageより大きい場合はデータ書き込み
-                                //アイテムが設定してある場合
-                                if (staionComp.storage[j].itemId != 0)
-                                {
-                                    //アイコンの表示
-                                    UI.tipIcon[i, j].sprite = LDB.items.Select(staionComp.storage[j].itemId).iconSprite;
-                                    UI.tipIcon[i, j].gameObject.SetActive(true);
+                                //アイコンの表示
+                                UI.tipIcon[i, slotNum].sprite = LDB.items.Select(staionComp.storage[j].itemId).iconSprite;
+                                UI.tipIcon[i, slotNum].gameObject.SetActive(true);
 
-                                    //テキスト個数の表示
-                                    UI.tipCounter[i, j].text = staionComp.storage[j].count.ToString("#,##0");
-                                    //UI.tipCounter[i, j].text = stationList[k].num.ToString("F");
-                                    //テキスト色の指定示
-                                    if ((staionComp.storage[j].count * 10) < staionComp.storage[j].max)
-                                    {
-                                        UI.tipCounter[i, j].color = new Color(1, 0.45f, 0.2f, 1);
-                                    }
-                                    else
-                                    {
-                                        UI.tipCounter[i, j].color = Color.white;
-                                    }
-                                    UI.tipCounter[i, j].gameObject.SetActive(true);
+                                //テキスト個数の表示
+                                UI.tipCounter[i, slotNum].text = staionComp.storage[j].count.ToString("#,##0");
+                                //テキスト色の指定示
+                                if ((staionComp.storage[j].count * 10) < staionComp.storage[j].max)
+                                {
+                                    UI.tipCounter[i, slotNum].color = new Color(1, 0.45f, 0.2f, 1);
                                 }
                                 else
                                 {
-                                    //アイテムが設定してない場合
+                                    UI.tipCounter[i, slotNum].color = Color.white;
+                                }
+                                UI.tipCounter[i, slotNum].gameObject.SetActive(true);
+                                slotNum++;
+
+                            }
+                            else
+                            {
+                                //アイテムが設定してない場合
+                                if (!HideEmptySlot.Value)
+                                {
                                     UI.tipIcon[i, j].gameObject.SetActive(false);
                                     UI.tipCounter[i, j].text = "-------------";
                                     UI.tipCounter[i, j].color = Color.white;
                                     UI.tipCounter[i, j].gameObject.SetActive(true);
+                                    slotNum++;
                                 }
-                            }
-                            else
-                            {
-                                UI.tipIcon[i, j].gameObject.SetActive(false);
-                                UI.tipCounter[i, j].gameObject.SetActive(false);
                             }
                             UI.tipBox[i].SetActive(true);
 
                         }
+                        //残りslotを非表示
+                        for (int j = slotNum; j < maxKinds; j++)
+                        {
+                            UI.tipIcon[i, j].gameObject.SetActive(false);
+                            UI.tipCounter[i, j].gameObject.SetActive(false);
+                        }
+
+                        //枠のサイズ調整
+                        UI.tipBox[i].GetComponent<RectTransform>().sizeDelta = new Vector2(100, slotNum * 30 + 10);
+
                         ////距離によって大きさの調整
                         if (stationList[k].dist < 50)
                         {

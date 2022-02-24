@@ -28,8 +28,8 @@ namespace DSPStationInfo
     {
 
         public static GameObject[] tipBox = new GameObject[Main.maxInfo.Value];
-        public static Text[,] tipCounter = new Text[Main.maxInfo.Value, 12];
-        public static Image[,] tipIcon = new Image[Main.maxInfo.Value, 12];
+        public static Text[,] tipCounter = new Text[Main.maxInfo.Value, Main.maxKinds];
+        public static Image[,] tipIcon = new Image[Main.maxInfo.Value, Main.maxKinds];
 
         public static GameObject stationTip;
         public static GameObject tipPrefab;
@@ -37,6 +37,9 @@ namespace DSPStationInfo
 
         public static void create()
         {
+
+            //LogManager.Logger.LogInfo("------------------------------------------------------------------Main.maxInfo.Value : " + Main.maxInfo.Value);
+            //LogManager.Logger.LogInfo("------------------------------------------------------------------Main.maxKinds : " + Main.maxKinds);
 
 
             //LogManager.Logger.LogInfo("------------------------------------------------------------------start create");
@@ -70,7 +73,6 @@ namespace DSPStationInfo
             tipPrefab.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
             Destroy(tipPrefab.GetComponent<UIVeinDetailNode>());
             tipPrefab.SetActive(false);
-            LogManager.Logger.LogInfo("------------------------------------------------------------------created1");
 
             //表示欄の作成
             for (int i = 0; i < Main.maxKinds; i++)
@@ -79,29 +81,24 @@ namespace DSPStationInfo
             }
             tipPrefab.transform.Find("info-text").gameObject.SetActive(false);
             tipPrefab.transform.Find("icon").gameObject.SetActive(false);
-            LogManager.Logger.LogInfo("------------------------------------------------------------------/tipの作成");
 
             //tipの作成
             for (int i = 0; i < Main.maxInfo.Value; i++)
             {
-                LogManager.Logger.LogInfo("------------------------------------------------------------------/tipの作成2");
-                tipBox[i] = Instantiate(tipPrefab, stationTip.transform) as GameObject;
+                tipBox[i] = Instantiate(tipPrefab, stationTip.transform);
                 for (int j = 0; j < Main.maxKinds; j++)
 
                 {
                     tipCounter[i, j] = tipBox[i].transform.Find("countText" + j).GetComponent<Text>();
                     tipIcon[i, j] = tipBox[i].transform.Find("icon" + j).GetComponent<Image>();
-                    LogManager.Logger.LogInfo("------------------------------------------------------------------/tipの作成3");
                 }
-
             }
-            LogManager.Logger.LogInfo("------------------------------------------------------------------created");
+            //LogManager.Logger.LogInfo("------------------------------------------------------------------created");
 
         }
 
         public static void InstantiateTip(int i)
         {
-            LogManager.Logger.LogInfo("------------------------------------------------------------------InstantiateTip");
 
             GameObject text = Instantiate(tipPrefab.transform.Find("info-text").gameObject, new Vector3(0, 0, 0), Quaternion.identity, tipPrefab.transform);
             text.name = "countText" + i;

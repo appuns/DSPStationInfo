@@ -1,6 +1,6 @@
 {
     "name": "DSPStationInfo",
-    "version_number": "0.4.4",
+    "version_number": "0.4.5",
     "website_url": "https://github.com/appuns/DSPStationInfo",
     "description": "Shows the contents of the station Without opening the window. This don't affect achievements or milestones. ウィンドウを開かずにステーションの内容を表示します。実績やマイルストーンには影響しません。",
     "dependencies": [

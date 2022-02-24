@@ -1,6 +1,11 @@
 # DSP Station Info
-Shows the contents of the station Without opening the window. Supported the MOD "GigaStationsUpdated". This don't affect achievements or milestones. <br>
-ウィンドウを開かずにステーションの内容を表示します。MOD「GigaStationsUpdated」に対応しました。やマイルストーンには影響しません。<br>
+Shows the contents of the station Without opening the window. <br>
+Supported the MOD "GigaStationsUpdated". <br>
+This don't affect achievements or milestones. <br>
+
+ウィンドウを開かずにステーションの内容を表示します。<br>
+MOD「GigaStationsUpdated」に対応しました。<br>
+実績やマイルストーンには影響しません。<br>
 
 ## Features　特徴
 You can Turn on/off the tips in the game menu at the bottom right.<br>
@@ -21,11 +26,15 @@ If you have any problems or suggestions, please contact DISCORD MSP Modding serv
 不具合、改善案などありましたら、DISCORD「DysonSphereProgram_Jp」サーバー**Appun#8284**までお願いします。<br>
 
 ## Change Log　更新履歴
+### 0.4.5
+- Also supported the MODs that increase the number of slots other than "Giga Stations Updated".  MOD「GigaStationsUpdated」以外のスロット数を増やすMODにも対応しました。
+- There is a new option to hide empty slots.空のスロットを表示しない新しいオプションがあります。
 ### 0.4.4
 - Fixed an error when deleting a station. ステーションを削除するときのエラーを修正しました。
 - Supported the MOD "GigaStationsUpdated".  MOD「GigaStationsUpdated」に対応しました。
 ### 0.4.3
 - Fixed a bug that the information of stations with slots smaller than 5 was incorrect. スロットが5より小さいステーションの情報が正しくなかったバグを解消しました。
+- Published in GitHub. GitHubに公開しました。
 ### 0.4.2
 - Reduced the load significantly. 負荷がかなり減りました。
 ### 0.4.1
