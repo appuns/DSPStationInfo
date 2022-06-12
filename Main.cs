@@ -29,7 +29,7 @@ using xiaoye97;
 namespace DSPStationInfo
 {
     [BepInDependency("org.kremnev8.plugin.GigaStationsUpdated", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInPlugin("Appun.DSP.plugin.StationInfo", "DSPStationInfo", "0.4.4")]
+    [BepInPlugin("Appun.DSP.plugin.StationInfo", "DSPStationInfo", "0.4.6")]
     [BepInProcess("DSPGAME.exe")]
 
 

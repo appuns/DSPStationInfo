@@ -99,11 +99,13 @@ namespace DSPStationInfo
 
         public static void InstantiateTip(int i)
         {
+            GameObject valueText = GameObject.Find("UI Root/Overlay Canvas/In Game/Planet & Star Details/planet-detail-ui/res-group/res-entry/value-text").gameObject;
 
             GameObject text = Instantiate(tipPrefab.transform.Find("info-text").gameObject, new Vector3(0, 0, 0), Quaternion.identity, tipPrefab.transform);
             text.name = "countText" + i;
 
             text.GetComponent<Text>().fontSize = 20;
+            text.GetComponent<Text>().font = valueText.GetComponent<Text>().font;
             text.GetComponent<Text>().text = "99999";
             text.GetComponent<Text>().alignment = TextAnchor.MiddleRight;
 
