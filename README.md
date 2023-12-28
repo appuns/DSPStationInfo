@@ -26,6 +26,11 @@ If you have any problems or suggestions, please contact DISCORD MSP Modding serv
 不具合、改善案などありましたら、DISCORD「DysonSphereProgram_Jp」サーバー**Appun#8284**までお願いします。<br>
 
 ## Change Log　更新履歴
+### 0.4.8
+- Confirmed that it works properly with game version 0.10.28.20904. ゲームバージョン0.9.26.20904で正常に動作することを確認しました。
+- Fixed an issue where other buttons would disappear. 他のボタンが消える問題を解消しました。
+### 0.4.7
+- Supported the game version 0.10.28.20856. ゲームバージョン0.10.28.20856に対応しました。
 ### 0.4.6
 - Confirmed that it works properly with game version 0.9.26.12900. ゲームバージョン0.9.26.12900で正常に動作することを確認しました。
 - Changed the number font to same as the planetary/stellar information panel. 数字のフォントを惑星/恒星の情報パネルと同じものに変更しました。

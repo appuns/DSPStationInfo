@@ -51,15 +51,14 @@ namespace DSPStationInfo
             //ボタンの作成
             signButton = Instantiate(GameObject.Find("UI Root/Overlay Canvas/In Game/Game Menu/detail-func-group/dfunc-1"), GameObject.Find("UI Root/Overlay Canvas/In Game/Game Menu/detail-func-group").transform) as GameObject;
             signButton.name = "signButton";
-            signButton.transform.localPosition = GameObject.Find("UI Root/Overlay Canvas/In Game/Game Menu/detail-func-group/dfunc-4").transform.localPosition;
+            signButton.transform.localPosition = GameObject.Find("UI Root/Overlay Canvas/In Game/Game Menu/detail-func-group/dfunc-8").transform.localPosition;
             //signButton.transform.localPosition = new Vector3(-155, 163, 0);
             signButton.GetComponent<UIButton>().tips.tipTitle = "Station Contents".Translate(); // "ステーション情報";
             signButton.GetComponent<UIButton>().tips.tipText = "Click to turn ON / OFF real-time contents of stations".Translate(); //"ステーションのストレージ情報を表示/非表示します。";
-            GameObject.Find("UI Root/Overlay Canvas/In Game/Game Menu/detail-func-group/dfunc-4").SetActive(false);
+            //GameObject.Find("UI Root/Overlay Canvas/In Game/Game Menu/detail-func-group/dfunc-4").SetActive(false);
 
             //ボタンイベントの作成
             signButton.GetComponent<UIButton>().button.onClick.AddListener(new UnityAction(Main.OnSignButtonClick));
-
 
             //tipPrefab
             tipPrefab = Instantiate(GameObject.Find("UI Root/Overlay Canvas/In Game/Scene UIs/Vein Marks/vein-tip-prefab"), stationTip.transform) as GameObject;
@@ -99,7 +98,8 @@ namespace DSPStationInfo
 
         public static void InstantiateTip(int i)
         {
-            GameObject valueText = GameObject.Find("UI Root/Overlay Canvas/In Game/Planet & Star Details/planet-detail-ui/res-group/res-entry/value-text").gameObject;
+
+            GameObject valueText = GameObject.Find("UI Root/Overlay Canvas/In Game/Planet & Star Details/planet-detail-ui/detail_group/res-group/res-entry/value-text").gameObject;
 
             GameObject text = Instantiate(tipPrefab.transform.Find("info-text").gameObject, new Vector3(0, 0, 0), Quaternion.identity, tipPrefab.transform);
             text.name = "countText" + i;
